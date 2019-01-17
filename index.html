@@ -18,30 +18,80 @@
       }
       #controls {
         position: absolute;
-        bottom: 5px;
+        bottom: 3%;
         text-align: center;
         width: 100%;
       }
-      #play {
+      #top {
+        position: absolute;
+        top: 3%;
+        text-align: right;
+        width: 97%;
+      }
+      /*       #qualities {
+        z-index: 10;
+        position: absolute;
+        bottom: 3%;
+        right: 3%;
+      } */
+      a {
         color: ghostwhite;
         text-decoration: none;
-        font-size: 22px;
+        font-size: 32px;
         font-weight: bold;
+      }
+
+      .hidden {
+        visibility: hidden;
       }
     </style>
   </head>
   <body>
+    <div id="top" class="hidden">
+      <a href="#" onclick="window.history.back()">&times;</a>
+    </div>
     <div id="player"></div>
-    <div id="controls"><a href="#" id="play">| |</a></div>
+    <div id="controls" class="hidden"><a href="#" id="play">| |</a></div>
+    <!-- <ul id="qualities" class="hidden"></ul> -->
     <script src="https://player.twitch.tv/js/embed/v1.js"></script>
     <script type="text/javascript">
-      var options = {
+      const options = {
         width: "100%",
         height: "100%",
         channel: "giantbomb8"
       };
-      var player = new Twitch.Player("player", options);
-      var playButton = document.querySelector("#play");
+      const player = new Twitch.Player("player", options);
+      const playButton = document.querySelector("#play");
+      let isVisible = false;
+      let timer;
+
+      function handleKeys(e) {
+        handleSpecial(e);
+        const hiddenElems = document.querySelectorAll(".hidden");
+        for (let i = 0; i < hiddenElems.length; i++) {
+          hiddenElems[i].style.visibility = "visible";
+        }
+        clearTimeout(timer);
+        timer = setTimeout(() => hideElems(hiddenElems), 2000);
+      }
+
+      function hideElems(elems) {
+        for (let i = 0; i < elems.length; i++) {
+          elems[i].style.visibility = "hidden";
+        }
+      }
+
+      function handleSpecial(e) {
+        if (window.VK_PLAY) {
+          VK_PLAY === e.keyCode && player.play();
+        }
+        if (window.VK_PAUSE) {
+          VK_PAUSE === e.keyCode && player.pause();
+        }
+        if (window.VK_STOP) {
+          VK_STOP === e.keyCode && window.history.back();
+        }
+      }
 
       function pauseHandler(e) {
         e.preventDefault();
@@ -53,7 +103,6 @@
       }
       player.addEventListener(Twitch.Player.PLAY, () => {
         playButton.innerText = "| |";
-        console.log("playing");
         playButton.removeEventListener("click", playHandler);
         playButton.addEventListener("click", pauseHandler);
       });
@@ -62,6 +111,26 @@
         playButton.removeEventListener("click", pauseHandler);
         playButton.addEventListener("click", playHandler);
       });
+      /* player.addEventListener(Twitch.Player.PLAYING, () => {
+        if (!document.querySelector("li")) {
+          const list = document.querySelector("#qualities");
+          const qualities = player.getQualities();
+          const items = qualities.forEach(qual => {
+            const child = document.createElement("li");
+            child.innerHTML = `<a href="#" data-quality=${qual.group}>${
+              qual.name
+            }</a>`;
+            list.appendChild(child);
+          });
+          list.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", e => {
+              e.preventDefault();
+              player.setQuality(link.dataset.quality);
+            });
+          });
+        }
+      }); */
+      document.addEventListener("keydown", handleKeys);
     </script>
   </body>
 </html>
